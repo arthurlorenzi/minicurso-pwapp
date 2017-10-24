@@ -23,34 +23,12 @@
   const versions = {};
   const notifiedVersions = {};
 
-  const db = new Dexie("PWADocs");
-
-  let canPush = false;
-
-  // Definição do schema
-  db.version(1).stores({
-    documents: 'id'
-  });
-  // Carregar dados para a memória
-  db.documents.toArray()
-    .then(function(result) {
-      for (let i = 0; i < result.length; ++i) {
-        let id = result[i].id;
-
-        versions[id] = result[i].version;
-
-        if (result[i].notifications)
-          notifications[id] = true;
-      }
-    })
-
   const app = {
     /*
      * Inicia o app, atribuindo os eventos aos elementos de interface e
      * fazendo as consultas necessárias ao servidor
      */
     init: function() {
-
       app.getDocumentList();
       // starts polling
       app.poll();
@@ -69,7 +47,7 @@
         for (let doc in notifications)
           if (notifications[doc]) list.push(doc);
 
-        if (list.length > 0 && navigator.onLine) {
+        if (list.length > 0) {
           let url = SERVER_URL + 'observe?documents=' + list.join(',');
           let request = new XMLHttpRequest();
 
@@ -80,19 +58,8 @@
 
                 for (let doc in response) {
                   if (notifiedVersions[doc] < response[doc]) {
-                    if (canPush) {
-                      navigator.serviceWorker.ready.then(function(registration) {
-                        registration.showNotification('Atualização', {
-                          body: 'Outro usuário modificou documento ' + doc + '.',
-                          icon: 'assets/logo128.png',
-                          vibrate: [200, 100, 200, 100, 200, 100, 200],
-                          tag: 'vibration-sample'
-                        });
-                      });
-                    } else {
-                      let data = { message: 'Outro usuário modificou documento ' + doc + '.' };
-                      snackbar.MaterialSnackbar.showSnackbar(data);
-                    }
+                    let data = { message: 'Outro usuário modificou documento ' + doc + '.' };
+                    snackbar.MaterialSnackbar.showSnackbar(data);
                     notifiedVersions[doc] = response[doc];
                   }
                 }
@@ -109,28 +76,6 @@
       }, 20000);
     },
 
-    persistVersion: function(id, version) {
-      let eq = db.documents.where('id').equals(id);
-      
-      return eq.toArray()
-        .then(function(result) {
-            if (result.length > 0)
-              return eq.modify({ version: version });
-            else
-              return db.documents.add({
-                id: id,
-                version: version,
-                notifications: false
-              });
-        });
-    },
-
-    persistNotification: function(id, enabled) {
-      return db.documents.where('id').equals(id).modify({
-        notifications: enabled
-      });
-    },
-
     /*
      * Requisita ao servidor uma lista de todos os documentos salvos. Ao receber
      * a lista, controi a navegação para esses documentos.
@@ -138,21 +83,6 @@
     getDocumentList: function() {
       let url = SERVER_URL + 'list';
       let request = new XMLHttpRequest();
-
-      if ('caches' in window) {
-        caches.match(url).then(function(res) {
-          if (res) {
-            res.json().then(json => {
-              let list = json.list;
-
-              for (let i = 0; i < list.length; ++i) {
-                let doc = list[i];
-                app.buildDocumentNav(doc.id, doc.name);
-              }
-            })
-          }
-        });
-      }
 
       request.onreadystatechange = function() {
         if (request.readyState === XMLHttpRequest.DONE) {
@@ -167,9 +97,7 @@
         }
       };
       request.open('GET', url);
-
-      if (navigator.onLine)
-        request.send();
+      request.send();
     },
 
     /*
@@ -203,13 +131,7 @@
       };
       request.open('POST', url);
       request.setRequestHeader("Content-Type", "application/json");
-
-      if (navigator.onLine) {
-        request.send(JSON.stringify({ name: name, author: MY_ID }));
-      } else {
-        let data = { message: 'Não foi possível se conectar ao servidor.' };
-        snackbar.MaterialSnackbar.showSnackbar(data);
-      }
+      request.send(JSON.stringify({ name: name, author: MY_ID }));
     },
 
     /*
@@ -221,30 +143,10 @@
       spinner.style.display = 'block';
       main.parentElement.appendChild(home);
 
+      app.clearMain();
+
       let url = SERVER_URL + 'get?document=' + id;
       let request = new XMLHttpRequest();
-
-      if ('caches' in window) {
-        caches.match(url).then(function(res) {
-          if (res) {
-            res.json().then(response => {
-              if (response.status === "error") {
-                console.error(response.message);
-              } else {
-                versions[response.id] = (response.last) ? response.last.version : -1;
-                notifiedVersions[response.id] = versions[response.id];
-                app.persistVersion(response.id, versions[response.id]);
-                app.setupDocumentPage(response);
-              }
-            })
-          } else {
-            spinner.style.display = 'none';
-            app.goToHome();
-            let data = { message: 'Não foi possível carregar o documento.' };
-            snackbar.MaterialSnackbar.showSnackbar(data);
-          }
-        });
-      }
 
       request.onreadystatechange = function() {
         if (request.readyState === XMLHttpRequest.DONE) {
@@ -256,16 +158,13 @@
             } else {
               versions[response.id] = (response.last) ? response.last.version : -1;
               notifiedVersions[response.id] = versions[response.id];
-              app.persistVersion(response.id, versions[response.id]);
               app.setupDocumentPage(response);
             }
           }
         }
       };
       request.open('GET', url);
-
-      if (navigator.onLine)
-        request.send();
+      request.send();
     },
 
     /*
@@ -291,7 +190,6 @@
             } else {
               versions[id] = response.version;
               notifiedVersions[id] = versions[id];
-              app.persistVersion(id, versions[id]);
               document.getElementById('content').value = response.content;
             }
           }
@@ -299,12 +197,7 @@
       };
       request.open('POST', url);
       request.setRequestHeader("Content-Type", "application/json");
-      if (navigator.onLine) {
-        request.send(JSON.stringify({ document: Number(id), base: base, author: MY_ID, content }));
-      } else {
-        let data = { message: 'Não foi possível se conectar ao servidor.' };
-        snackbar.MaterialSnackbar.showSnackbar(data);
-      }
+      request.send(JSON.stringify({ document: Number(id), base: base, author: MY_ID, content }));
     },
 
     /*
@@ -339,13 +232,6 @@
         app.goToHome();
         layout.MaterialLayout.toggleDrawer();
       });
-
-      /*
-       * Autorização para push
-       */
-      Notification.requestPermission(function(result) {
-        canPush = (result === 'granted');
-      });
     },
 
     /*
@@ -372,30 +258,25 @@
      * Constrói um link de navegação para um documento no drawer (barra lateral)
      */
     buildDocumentNav: function(id, name) {
-      let previous = docsNavigation.querySelector('a[doc-id="' + id + '"]');
+      let newAnchor = document.createElement('a'),
+        text = document.createTextNode(name);
 
-      if (!previous) {
-        let newAnchor = document.createElement('a'),
-          text = document.createTextNode(name);
+      newAnchor.append(text);
+      newAnchor.setAttribute('class', 'mdl-navigation__link');
+      newAnchor.setAttribute('doc-id', id);
 
-        newAnchor.append(text);
-        newAnchor.setAttribute('class', 'mdl-navigation__link');
-        newAnchor.setAttribute('doc-id', id);
+      newAnchor.addEventListener('click', function() {
+        layout.MaterialLayout.toggleDrawer();
+        app.openDocument(id);
+      })
 
-        newAnchor.addEventListener('click', function() {
-          layout.MaterialLayout.toggleDrawer();
-          app.openDocument(id);
-        })
-
-        docsNavigation.append(newAnchor);
-      }
+      docsNavigation.append(newAnchor);
     },
 
     /*
      * Constrói a página de um documento e atribui os eventos de UI.
      */
     setupDocumentPage: function(data) {
-      app.clearMain();
       templ.content.querySelector('.name').innerHTML = data.name;
       templ.content.querySelector('.author').innerHTML = 'autor: ' + data.author;
       templ.content.querySelector('.date').innerHTML = 'criado em: ' + (new Date(data.date)).toLocaleDateString();
@@ -429,7 +310,7 @@
       })
 
       bell.addEventListener('click', function() {
-        let id = Number(this.getAttribute('doc-id'));
+        let id = this.getAttribute('doc-id');
 
         if (notifications[id]) {
           notifications[id] = false;
@@ -438,8 +319,6 @@
           notifications[id] = true;
           this.querySelector('i').innerHTML = 'notifications_active';
         }
-
-        app.persistNotification(id, notifications[id]);
       });
 
       submit.addEventListener('click', function() {
