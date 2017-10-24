@@ -1,3 +1,5 @@
+'use strict';
+
 const diff3Merge = require('diff3');
 
 // array de documentos armazenado em memória.
