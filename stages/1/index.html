@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' fonts.googleapis.com; font-src 'self' fonts.gstatic.com; img-src 'self' data:">
+  <title>PWA Docs</title>
+
+  <!-- styles -->
+  <link rel="stylesheet" href="assets/index.css">
+  <link rel="stylesheet" href="vendor/material.min.css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
+</head>
+<body >
+  <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+    <header class="mdl-layout__header is-casting-shadow">
+      <div class="mdl-layout__header-row">
+        <span class="mdl-layout-title">PWA Docs</span>
+      </div>
+    </header>
+    <div class="mdl-layout__drawer">
+      <span class="mdl-layout-title">Menu</span>
+      <hr />
+      <nav class="mdl-navigation">
+        <a id="home-anchor" class="mdl-navigation__link">Home</a>
+      </nav>
+      <nav id="docs-navigation" class="mdl-navigation">
+      </nav>
+    </div>
+    <main class="mdl-layout__content mdl-color-text--grey-700">
+      <div id="home">
+        <h1 class="mdl-typography--headline mdl-color-text--grey-800">PWA Docs</h1>
+        <p class="mdl-typography--body-1 mdl-typography--text-justify">PWA Docs é uma aplicação desenvolvida para o minicurso "Introdução a Progressive Web Apps" ministrado na Semana da Computação 2017 do DCC-UFJF. A aplicação permite a criação e edição de documentos de texto de maneira colaborativa entre os usuários, verificando incompatibilidades entre versões de um documento editado por múltiplos usuários. Todo o <i>server-side</i> foi implementado em NodeJS.</p>
+        <p><a>Código fonte da aplicação</a></p>
+        <p class="mdl-typography--body-2-color-contrast mdl-typography--text-justify">Para começar é só criar um documento!</p>
+        <button id="fab-add-document" class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored">
+          <i class="material-icons">add</i>
+        </button>
+
+        <dialog class="mdl-dialog">
+          <div class="mdl-dialog__content">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <input id="insert-name" class="mdl-textfield__input" type="text">
+              <label for="insert-name" class="mdl-textfield__label">nome do documento</label>
+            </div>
+            <p id="insert-error-message" class="mdl-color-text--red-500"></p>
+          </div>
+          <div class="mdl-dialog__actions">
+            <button type="button" class="mdl-button mdl-js-button create">Criar</button>
+            <button type="button" class="mdl-button mdl-js-button close">Cancelar</button>
+          </div>
+        </dialog>
+      </div>
+    </main>
+    <div id="spinner" class="mdl-spinner mdl-spinner--single-color mdl-js-spinner is-active"></div>
+    <div id="snackbar" class="mdl-js-snackbar mdl-snackbar">
+      <div class="mdl-snackbar__text"></div>
+      <button class="mdl-snackbar__action" type="button"></button>
+    </div>
+  </div>
+  
+  <template id="document-template">
+    <h1 class="name mdl-typography--title mdl-color-text--grey-800"></h1>
+    <div id="notification-bell"><i class="material-icons md-48">notifications_none</i></div>
+    <div><span class="author"></span></div>
+    <div><span class="date"></span></div>
+    <form id="content-form">
+      <div class="mdl-textfield mdl-js-textfield">
+        <textarea id="content" class="mdl-textfield__input" type="text" rows="10"></textarea>
+        <label class="mdl-textfield__label" for="content">Conteúdo do documento...</label>
+      </div>
+      <button id="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+        Confirmar
+      </button>
+    </form>
+  </template>
+  <!-- scripts -->
+  <script src="/vendor/material.min.js"></script>
+  <script defer src="assets/index.js"></script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "name": "minicurso-pwapp",
+  "version": "1.0.0",
+  "description": "Minicurso de introdução a Progressive Web Apps para a Semana da Computação 2017 do DCC/UFJF",
+  "main": "app.js",
+  "dependencies": {
+    "cookie-parser": "^1.4.3",
+    "diff3": "^0.0.3",
+    "express": "^4.16.2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "author": "arthurlorenzi",
+  "license": "ISC"
+}

@@ -1,0 +1,61 @@
+.mdl-layout__drawer hr {
+  margin: 0;
+}
+
+main {
+  padding: 16px 32px 32px;
+}
+
+#spinner {
+  display: none;
+  position: fixed;
+  top: calc(50vh - 14px);
+  left: calc(50vw - 14px);
+}
+
+#fab-add-document {
+  position: fixed;
+  right: 32px;
+  bottom: 10vh;
+}
+
+#insert-error-message {
+  display: none;
+}
+
+#notification-bell {
+  position: absolute;
+  cursor: pointer;
+  top: 40px;
+  right: 32px;
+}
+
+#content-form .mdl-textfield {
+  width: 100%;
+}
+
+/*
+ * Material Icons
+ */
+@font-face {
+  font-family: 'Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: url(../vendor/MaterialIcons-Regular.woff2) format('woff2');
+}
+
+.material-icons {
+  font-family: 'Material Icons';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-feature-settings: 'liga';
+  -webkit-font-smoothing: antialiased;
+} 
